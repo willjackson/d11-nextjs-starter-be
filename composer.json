@@ -23,6 +23,7 @@
         "drupal/saplings_ai_agents": "^1.0",
         "drupal/saplings_ai_mcp": "^1.0",
         "drush/drush": "^13.0",
+        "pantheon-systems/drupal-integrations": "^11",
         "willjackson/dns_default_content": "^1.0",
         "willjackson/saplings_nextjs": "^1"
     },
@@ -45,21 +46,28 @@
             "php-http/discovery": true,
             "tbachert/spi": true
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "8.3.11"
+        }
     },
     "extra": {
         "drupal-scaffold": {
             "locations": {
                 "web-root": "web/"
+            },
+            "allowed-packages": [
+                "pantheon-systems/drupal-integrations"
+            ],
+            "file-mapping": {
+                "[project-root]/.editorconfig": false,
+                "[project-root]/pantheon.upstream.yml": false,
+                "[project-root]/.gitattributes": false
             }
         },
         "patches": {
             "drupal/core": {
                 "#3523317: TypeError: Drupal\\Component\\Utility\\Html::escape(): Argument #1 ($text) must be of type string, null given": "https://www.drupal.org/files/issues/2025-07-11/fix-type-error-null-text-3523317-21.patch"
-            },
-            "drupal/mcp": {
-                "#3537740: Schema mismatch on Settings form": "https://git.drupalcode.org/project/mcp/-/merge_requests/20.patch",
-                "#3537743: Add a default configuration": "https://git.drupalcode.org/project/mcp/-/merge_requests/21.patch"
             }
         },
         "installer-paths": {
@@ -71,7 +79,8 @@
             "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
             "web/modules/custom/{$name}": ["type:drupal-custom-module"],
             "web/profiles/custom/{$name}": ["type:drupal-custom-profile"],
-            "web/themes/custom/{$name}": ["type:drupal-custom-theme"]
+            "web/themes/custom/{$name}": ["type:drupal-custom-theme"],
+            "web/private/scripts/quicksilver/{$name}/": ["type:quicksilver-script"]
         },
         "drupal-core-project-message": {
             "include-keys": ["homepage", "support"],
