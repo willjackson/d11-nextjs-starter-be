@@ -108,7 +108,5 @@ Thumbs.db
 
 # IDE settings #
 .vscode/
-.docksal/docksal-local.env
-.docksal/docksal-local.yml
 .claude
 web/sites/default/settings.php

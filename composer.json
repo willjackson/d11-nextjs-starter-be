@@ -1,6 +1,6 @@
 {
-    "name": "will-blog/drupal-site",
-    "description": "Drupal 11 site for Will's tech blog",
+    "name": "willjackson/pantheon-nextjs-demo-drupal",
+    "description": "Drupal 11 headless backend for the Pantheon Drupal + Next.js starter kit.",
     "type": "project",
     "license": "GPL-2.0-or-later",
     "homepage": "https://www.drupal.org/project/drupal",
@@ -12,6 +12,14 @@
         {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/willjackson/pantheon_nextjs_demo.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/willjackson/pantheon_nextjs_demo_content.git"
         }
     ],
     "require": {
@@ -20,12 +28,10 @@
         "drupal/core-composer-scaffold": "^11.0",
         "drupal/core-project-message": "^11.0",
         "drupal/core-recommended": "^11.0",
-        "drupal/saplings_ai_agents": "^1.0",
-        "drupal/saplings_ai_mcp": "^1.0",
         "drush/drush": "^13.0",
         "pantheon-systems/drupal-integrations": "^11",
-        "willjackson/dns_default_content": "^1.0",
-        "willjackson/saplings_nextjs": "^1"
+        "willjackson/pantheon_nextjs_demo": "^1.0",
+        "willjackson/pantheon_nextjs_demo_content": "^1.0"
     },
     "require-dev": {
         "drupal/core-dev": "^11.0"
