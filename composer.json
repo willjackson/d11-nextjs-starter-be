@@ -77,6 +77,9 @@
         "patches": {
             "drupal/core": {
                 "#3523317: TypeError: Drupal\\Component\\Utility\\Html::escape(): Argument #1 ($text) must be of type string, null given": "https://www.drupal.org/files/issues/2025-07-11/fix-type-error-null-text-3523317-21.patch"
+            },
+            "drupal/subrequests": {
+                "PHP 8.4: use explicit nullable type for setValidator() parameter (prevents a deprecation notice that corrupts the install AJAX response)": "patches/subrequests-php84-implicitly-nullable.patch"
             }
         },
         "enable-patching": true,

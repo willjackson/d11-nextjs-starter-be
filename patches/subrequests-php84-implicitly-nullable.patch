@@ -1,0 +1,11 @@
+--- a/src/Normalizer/JsonBlueprintDenormalizer.php
++++ b/src/Normalizer/JsonBlueprintDenormalizer.php
+@@ -53,7 +53,7 @@
+   /**
+    * Sets the validator service if available.
+    */
+-  public function setValidator(Validator $validator = NULL) {
++  public function setValidator(?Validator $validator = NULL) {
+     if ($validator) {
+       $this->validator = $validator;
+     }
