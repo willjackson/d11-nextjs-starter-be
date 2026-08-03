@@ -1,6 +1,6 @@
 name: 'Pantheon Next.js Demo'
 type: profile
-description: 'Decoupled Drupal 11 backend for a single Next.js front end. Collects the front end URL during installation and applies the demo recipes so the next_site base/preview/revalidate URLs are configured automatically.'
+description: 'Decoupled Drupal 11 backend for a single Next.js front end, on a full standard Drupal baseline. Collects the front end URL during installation and applies the demo recipes so the next_site base/preview/revalidate URLs are configured automatically.'
 core_version_requirement: '^11'
 
 # Brand the installer and skip the profile-selection step. Sites created from the
@@ -11,22 +11,43 @@ distribution:
     theme: pantheon_nextjs_installer
     finish_url: '/admin/content'
 
-# Curated headless base. The core "standard" recipe is intentionally NOT used: it
-# installs navigation/layout_builder/big_pipe/help, which a JSON:API backend does
-# not need (and layout_builder breaks view-display config saves during install).
-# Text formats + editor, taxonomy, and the admin/front themes are added by core
-# recipes in the install task; the rest of the content model comes from the demo
+# Full standard Drupal baseline, so the admin experience matches the core "standard"
+# profile — content/admin Views, Field UI, database logging, block layout, contextual
+# links, page + dynamic-page caching with BigPipe, admin navigation, CKEditor 5, help,
+# breakpoints, cron, and announcements. (layout_builder is intentionally NOT added —
+# it isn't in "standard" and breaks view-display config saves when recipes apply during
+# install.) Text formats, taxonomy, and the admin/front themes are provided by core
+# recipes in the install task; the decoupled content model + modules come from the demo
 # recipes.
 install:
   - node
-  - image
-  - file
-  - text
-  - options
+  - block
+  - block_content
+  - breakpoint
+  - ckeditor5
+  - config
+  - contextual
   - datetime
-  - path
-  - menu_ui
+  - dblog
+  - dynamic_page_cache
+  - editor
+  - field_ui
+  - file
+  - help
+  - image
   - menu_link_content
+  - menu_ui
+  - navigation
+  - options
+  - page_cache
+  - big_pipe
+  - path
+  - taxonomy
+  - text
+  - views
+  - views_ui
+  - automated_cron
+  - announcements_feed
 
 # No bundled themes here so the installer does not inject Stark; the admin/front
 # themes are installed by core recipes during the install task.
