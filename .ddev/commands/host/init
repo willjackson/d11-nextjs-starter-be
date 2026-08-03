@@ -1,0 +1,21 @@
+#!/bin/bash
+
+## Description: Initialize the Drupal backend (start, composer, install, apply recipes)
+## Usage: init
+## Example: "ddev init"
+
+set -e
+
+echo "Starting the Drupal backend container..."
+ddev start
+
+echo "Installing and configuring Drupal..."
+ddev init-site
+
+echo "Applying recipes (Next.js config + demo content)..."
+ddev apply-recipes
+
+echo ""
+echo "Drupal backend initialization complete!"
+echo ""
+ddev show-links

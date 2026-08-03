@@ -1,0 +1,10 @@
+name: 'Pantheon Next.js Installer'
+type: theme
+description: 'Installer branding for the Pantheon Next.js Demo profile. Not intended for the running site.'
+core_version_requirement: '^11'
+base theme: claro
+# Hidden from the Appearance UI; used only as the installer theme via the
+# profile's distribution.install.theme setting.
+hidden: true
+libraries:
+  - pantheon_nextjs_installer/installer

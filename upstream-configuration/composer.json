@@ -1,0 +1,23 @@
+{
+    "name": "pantheon-upstreams/upstream-configuration",
+    "type": "project",
+    "version": "dev-main",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "require": {
+        "drupal/consumers": "^1.24",
+        "drupal/decoupled_router": "^2.0",
+        "drupal/next": "^2.1",
+        "drupal/pathauto": "^1.15",
+        "drupal/simple_oauth": "^6.1",
+        "pantheon-systems-ps/pantheon_nextjs_demo": "^1.0",
+        "pantheon-systems-ps/pantheon_nextjs_demo_content": "^1.0"
+    },
+    "extra": {
+        "_README": "Dependencies provided by this custom upstream. Add packages here with `composer upstream:require <package>` (not to the root composer.json, which is owned by each site). See https://pantheon.io/docs/create-custom-upstream."
+    }
+}

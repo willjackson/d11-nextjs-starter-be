@@ -1,0 +1,33 @@
+name: 'Pantheon Next.js Demo'
+type: profile
+description: 'Decoupled Drupal 11 backend for a single Next.js front end. Collects the front end URL during installation and applies the demo recipes so the next_site base/preview/revalidate URLs are configured automatically.'
+core_version_requirement: '^11'
+
+# Brand the installer and skip the profile-selection step. Sites created from the
+# Pantheon custom upstream install directly with this profile.
+distribution:
+  name: 'Pantheon Next.js Demo'
+  install:
+    theme: pantheon_nextjs_installer
+    finish_url: '/admin/content'
+
+# Curated headless base. The core "standard" recipe is intentionally NOT used: it
+# installs navigation/layout_builder/big_pipe/help, which a JSON:API backend does
+# not need (and layout_builder breaks view-display config saves during install).
+# Text formats + editor, taxonomy, and the admin/front themes are added by core
+# recipes in the install task; the rest of the content model comes from the demo
+# recipes.
+install:
+  - node
+  - image
+  - file
+  - text
+  - options
+  - datetime
+  - path
+  - menu_ui
+  - menu_link_content
+
+# No bundled themes here so the installer does not inject Stark; the admin/front
+# themes are installed by core recipes during the install task.
+themes: []

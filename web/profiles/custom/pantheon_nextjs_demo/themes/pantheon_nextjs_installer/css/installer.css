@@ -1,0 +1,61 @@
+/**
+ * Installer branding for the Pantheon Next.js Multiple Site Demo.
+ * Loaded only during installation (this is the profile's install theme).
+ */
+
+:root {
+  --pantheon-dark: #23232d;
+  --pantheon-yellow: #ffdc28;
+}
+
+/* Branded header with the Pantheon logo, centered above the install steps. */
+.pantheon-installer-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 0 1.5rem;
+  border-bottom: 3px solid var(--pantheon-yellow);
+  margin-bottom: 1.5rem;
+}
+
+.pantheon-installer-logo {
+  height: 48px;
+  width: auto;
+}
+
+.pantheon-installer-header .site-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #55555f;
+  text-align: center;
+}
+
+/* Primary actions in Pantheon colors (default Claro is blue). */
+.button--primary {
+  background-color: var(--pantheon-dark);
+  border-color: var(--pantheon-dark);
+  color: #fff;
+}
+
+.button--primary:hover,
+.button--primary:active {
+  background-color: #000;
+  border-color: #000;
+}
+
+.button--primary:focus {
+  box-shadow: 0 0 0 3px var(--pantheon-yellow);
+}
+
+/* Progress bar during recipe application. */
+.progress__bar {
+  background-color: var(--pantheon-yellow);
+  border-color: var(--pantheon-yellow);
+}
+
+/* Links and the active install step marker. */
+.task-list li.is-active {
+  border-inline-start-color: var(--pantheon-yellow);
+}

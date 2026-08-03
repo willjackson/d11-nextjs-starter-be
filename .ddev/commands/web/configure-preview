@@ -1,0 +1,90 @@
+#!/bin/bash
+
+## Description: Provision the OAuth pieces for draft preview that can't live in config (keys, consumer secret)
+## Usage: configure-preview
+## Example: "ddev configure-preview"
+
+# Draft preview and authenticated JSON:API reads (Next.js for Drupal + Simple OAuth,
+# client_credentials grant) need things that carry secrets and therefore can't ship as
+# recipe config:
+#   1. An RSA key pair for signing OAuth tokens.
+#   2. The default consumer configured as confidential, with a known secret and the
+#      client_credentials grant.
+# The front end authenticates with client_id=default_consumer / client_secret=nextjs-drupal
+# (see ../web/.env.example). If the recipe provides a `nextjs_preview` role/scope for reading
+# unpublished content, they are wired up too; otherwise those steps are skipped.
+#
+# This command is idempotent — safe to re-run. It is invoked automatically by `ddev apply-recipes`.
+
+set -e
+
+cd /var/www/html
+
+KEY_DIR="/var/www/html/keys"
+CLIENT_SECRET="nextjs-drupal"
+SCOPE="nextjs_preview"
+
+echo "Configuring draft preview (OAuth)..."
+
+# 1. OAuth keys — generate once, then point Simple OAuth at them.
+if [ ! -f "${KEY_DIR}/private.key" ]; then
+  echo "  - generating OAuth keys in ${KEY_DIR}"
+  mkdir -p "${KEY_DIR}"
+  drush simple-oauth:generate-keys "${KEY_DIR}"
+else
+  echo "  - OAuth keys already present"
+fi
+drush config:set simple_oauth.settings public_key "${KEY_DIR}/public.key" --yes >/dev/null
+drush config:set simple_oauth.settings private_key "${KEY_DIR}/private.key" --yes >/dev/null
+
+# 2. Default consumer: confidential + known secret + client_credentials. The preview role
+# and scope are only wired up if the recipe defined them (defensive for the single-site
+# recipe set). Done in PHP so it stays idempotent.
+drush php:eval '
+use Drupal\user\Entity\User;
+
+$client_secret = "'"${CLIENT_SECRET}"'";
+$scope = "'"${SCOPE}"'";
+$etm = \Drupal::entityTypeManager();
+
+// Optional service user holding the preview role, if the recipe created that role.
+$user = NULL;
+$role = $etm->getStorage("user_role")->load($scope);
+if ($role) {
+  $existing = $etm->getStorage("user")->loadByProperties(["name" => $scope]);
+  $user = $existing ? reset($existing) : NULL;
+  if (!$user) {
+    $user = User::create(["name" => $scope, "status" => 1]);
+    $user->addRole($scope);
+    $user->save();
+    print "  - created service user " . $scope . " (uid=" . $user->id() . ")\n";
+  }
+  elseif (!$user->hasRole($scope)) {
+    $user->addRole($scope);
+    $user->save();
+  }
+}
+
+// Default consumer.
+$consumer = $etm->getStorage("consumer")->load(1);
+if (!$consumer) {
+  $consumers = $etm->getStorage("consumer")->loadByProperties(["client_id" => "default_consumer"]);
+  $consumer = $consumers ? reset($consumers) : NULL;
+}
+if (!$consumer) { print "  ! default consumer not found — is the consumers module installed?\n"; return; }
+
+$consumer->set("confidential", TRUE);
+$consumer->set("secret", $client_secret);
+$consumer->set("grant_types", ["client_credentials", "refresh_token", "authorization_code"]);
+if ($consumer->hasField("access_token_expiration")) { $consumer->set("access_token_expiration", 3600); }
+if ($consumer->hasField("refresh_token_expiration")) { $consumer->set("refresh_token_expiration", 1209600); }
+if ($user) { $consumer->set("user_id", $user->id()); }
+// Only set the scope if a matching scope entity exists (Simple OAuth 6 scope entity).
+if ($etm->hasDefinition("oauth2_scope") && $etm->getStorage("oauth2_scope")->load($scope)) {
+  $consumer->set("scopes", [["scope_id" => $scope]]);
+}
+$consumer->save();
+print "  - configured default_consumer (confidential, client_credentials)\n";
+'
+
+echo "Draft preview configured."

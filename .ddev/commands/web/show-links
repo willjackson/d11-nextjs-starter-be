@@ -1,0 +1,23 @@
+#!/bin/bash
+
+## Description: Show the Drupal backend URL, an admin login link, and the registered Next.js front end
+## Usage: show-links
+## Example: "ddev show-links"
+
+set -e
+
+cd /var/www/html
+
+echo "🔗 Drupal backend"
+echo "================="
+echo "  ${DDEV_PRIMARY_URL}"
+echo ""
+echo "Admin login link:"
+drush user:login
+
+echo ""
+echo "Registered Next.js front ends (next_site entities):"
+drush ev '$sites = \Drupal::entityTypeManager()->getStorage("next_site")->loadMultiple(); if (!$sites) { print "  (none yet — run: ddev apply-recipes)\n"; } foreach ($sites as $id => $site) { print "  - " . $id . ": " . $site->get("base_url") . "\n"; }' 2>/dev/null || echo "  (next module not installed yet)"
+
+echo ""
+echo "Next.js front end runs as its own DDEV project in ../web (ddev: d11-nextjs-fe)."

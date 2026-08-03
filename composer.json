@@ -14,24 +14,19 @@
             "url": "https://packages.drupal.org/8"
         },
         {
-            "type": "vcs",
-            "url": "https://github.com/willjackson/pantheon_nextjs_demo.git"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/willjackson/pantheon_nextjs_demo_content.git"
+            "type": "path",
+            "url": "upstream-configuration"
         }
     ],
     "require": {
+        "pantheon-upstreams/upstream-configuration": "dev-main",
         "composer/installers": "^2.0",
         "cweagans/composer-patches": "^1.7",
         "drupal/core-composer-scaffold": "^11.0",
         "drupal/core-project-message": "^11.0",
         "drupal/core-recommended": "^11.0",
         "drush/drush": "^13.0",
-        "pantheon-systems/drupal-integrations": "^11",
-        "willjackson/pantheon_nextjs_demo": "^1.0",
-        "willjackson/pantheon_nextjs_demo_content": "^1.0"
+        "pantheon-systems/drupal-integrations": "^11"
     },
     "require-dev": {
         "drupal/core-dev": "^11.0"
@@ -41,6 +36,13 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
+    "autoload": {
+        "classmap": ["upstream-configuration/scripts/ComposerScripts.php"]
+    },
+    "scripts": {
+        "pre-update-cmd": ["DrupalComposerManaged\\ComposerScripts::preUpdate"],
+        "post-update-cmd": ["DrupalComposerManaged\\ComposerScripts::postUpdate"]
+    },
     "config": {
         "allow-plugins": {
             "composer/installers": true,
@@ -50,7 +52,8 @@
             "phpstan/extension-installer": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "php-http/discovery": true,
-            "tbachert/spi": true
+            "tbachert/spi": true,
+            "symfony/runtime": true
         },
         "sort-packages": true,
         "platform": {
@@ -76,8 +79,10 @@
                 "#3523317: TypeError: Drupal\\Component\\Utility\\Html::escape(): Argument #1 ($text) must be of type string, null given": "https://www.drupal.org/files/issues/2025-07-11/fix-type-error-null-text-3523317-21.patch"
             }
         },
+        "enable-patching": true,
         "installer-paths": {
             "web/core": ["type:drupal-core"],
+            "recipes/{$name}": ["type:drupal-recipe"],
             "web/libraries/{$name}": ["type:drupal-library"],
             "web/modules/contrib/{$name}": ["type:drupal-module"],
             "web/profiles/contrib/{$name}": ["type:drupal-profile"],

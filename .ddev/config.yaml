@@ -1,0 +1,24 @@
+name: d11-nextjs-be
+type: drupal11
+docroot: web
+php_version: "8.3"
+webserver_type: nginx-fpm
+xdebug_enabled: false
+database:
+    type: mariadb
+    version: "10.11"
+use_dns_when_possible: true
+composer_version: "2"
+corepack_enable: false
+
+# Decoupled backend — Drupal only.
+#
+# This is the standalone Drupal 11 content source for the Next.js front end in
+# ../web (DDEV project: d11-nextjs-fe). Unlike the old single-container monolith, this
+# project serves ONLY Drupal at its primary URL (https://d11-nextjs-be.ddev.site).
+# The Next.js app is its own DDEV project and reaches this backend over the shared
+# ddev-router.
+#
+# The DDEV project root IS the Drupal Composer root (this dir holds composer.json),
+# so no composer_root override is needed. The docroot is web/. Recipes are Composer
+# packages installed into ./recipes and applied by .ddev/commands/web/apply-recipes.

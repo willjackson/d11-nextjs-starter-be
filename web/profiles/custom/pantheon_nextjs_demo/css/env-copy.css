@@ -1,0 +1,42 @@
+/**
+ * Styling for the installer's environment-variable blocks.
+ */
+
+.pntn-env {
+  margin-block-end: 0.5rem;
+}
+
+.pntn-env__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-block-end: 0.35rem;
+}
+
+.pntn-env__label {
+  font-weight: 700;
+}
+
+.pntn-env__details > summary {
+  cursor: pointer;
+  color: #55555f;
+  margin-block-end: 0.35rem;
+}
+
+.pntn-env__pre {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  background: #1b1b22;
+  color: #f4f4f6;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+.pntn-env__steps {
+  margin-block: 0.5rem;
+}

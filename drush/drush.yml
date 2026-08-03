@@ -1,7 +1,7 @@
 # Project drush configuration.
 #
-# The primary DDEV URL serves the Next.js frontend, so point drush at the
-# Drupal hostname. The DRUSH_OPTIONS_URI environment variable set in
-# .ddev/config.nextjs.yaml reinforces this.
+# Drupal runs as its own DDEV project (d11-nextjs-be) served at its primary URL, so point
+# drush at that hostname for correct absolute URLs (e.g. one-time login links). On
+# Pantheon the platform sets the correct URI, so this local default is harmless there.
 options:
-  uri: 'http://drupal.d11-nextjs-starter.ddev.site'
+  uri: 'https://d11-nextjs-be.ddev.site'

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+## Description: Install Composer deps and the Drupal site (drush site:install)
+## Usage: init-site
+## Example: "ddev init-site"
+
+set -e
+
+PROJECT_ROOT="/var/www/html"
+SITEDIR_PATH="${PROJECT_ROOT}/web/sites/default"
+
+cd "${PROJECT_ROOT}"
+
+if [ -f composer.lock ]; then
+  echo "Installing Composer dependencies from lock..."
+  composer install
+else
+  echo "No composer.lock found — resolving dependencies (first run)..."
+  composer update -W
+fi
+
+# Wire up local dev settings: DDEV creates settings.php from default.settings.php on
+# first start with the settings.local.php include commented out. Make sure an active
+# include exists, then symlink our shared local settings into place.
+if ! grep -qE '^[^#]*include.*settings\.local\.php' "${SITEDIR_PATH}/settings.php"; then
+  echo "Enabling settings.local.php include in settings.php..."
+  cat >> "${SITEDIR_PATH}/settings.php" <<'PHP'
+
+// Load local development override configuration (symlinked by `ddev init-site`).
+if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
+  include $app_root . '/' . $site_path . '/settings.local.php';
+}
+PHP
+else
+  echo "settings.local.php include already present."
+fi
+
+echo "Linking settings.local.php for local dev..."
+ln -sf "${PROJECT_ROOT}/.ddev/etc/conf/settings.php" "${SITEDIR_PATH}/settings.local.php"
+
+echo "Installing Drupal (standard profile)..."
+drush site:install standard \
+  --site-name="Pantheon Headless Drupal + Next.js Demo" \
+  --account-name=admin \
+  --yes
+# No --account-pass: drush generates a random uid-1 password. Log in with `ddev show-links`
+# (or `drush user:login`), which issues a one-time login link.
+
+echo "Setting up private files directory..."
+mkdir -p "${SITEDIR_PATH}/files/private"
+chmod 755 "${SITEDIR_PATH}" "${SITEDIR_PATH}/files/private"
+
+echo "Rebuilding caches..."
+drush cache:rebuild

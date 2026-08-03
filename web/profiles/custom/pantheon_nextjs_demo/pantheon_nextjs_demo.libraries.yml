@@ -1,0 +1,10 @@
+env_copy:
+  version: 1.x
+  js:
+    js/env-copy.js: {}
+  css:
+    theme:
+      css/env-copy.css: {}
+  dependencies:
+    - core/drupal
+    - core/once

@@ -1,0 +1,50 @@
+#!/bin/bash
+
+## Description: Install (via Composer) and apply the Next.js recipes, then configure draft preview
+## Usage: apply-recipes [recipe-name ...]
+## Example: "ddev apply-recipes" or "ddev apply-recipes pantheon_nextjs_demo"
+
+set -e
+
+cd /var/www/html
+
+# Composer vendor namespace for the recipe packages (see composer.json).
+VENDOR="pantheon-systems-ps"
+
+# Primary URL of the Next.js front end (DDEV project d11-nextjs-fe). Written into the
+# next_site's base_url / preview_url / revalidate_url via the site recipe's input.
+FRONTEND_URL="https://d11-nextjs-fe.ddev.site"
+
+# Default set: the Site recipe first, then the demo content (which also declares the
+# Site recipe as a dependency, so re-application is idempotent).
+RECIPES=("$@")
+if [ ${#RECIPES[@]} -eq 0 ]; then
+  RECIPES=(pantheon_nextjs_demo pantheon_nextjs_demo_content)
+fi
+
+for recipe in "${RECIPES[@]}"; do
+  # Recipes are Composer packages (type: drupal-recipe) installed into recipes/<name>.
+  # Pull from the configured repositories if the package isn't installed yet.
+  if [ ! -d "recipes/${recipe}" ]; then
+    echo "Installing ${VENDOR}/${recipe} via Composer..."
+    composer require "${VENDOR}/${recipe}" --no-interaction
+  fi
+
+  echo "Applying recipe: ${recipe}"
+  # Absolute path: drush resolves relative recipe paths against the Drupal root (web/),
+  # not the project root, so point at the installed directory directly. The base_url
+  # input targets the pantheon_nextjs_demo recipe by name, so it applies whether the
+  # Site recipe is applied directly or pulled in as a dependency of the content recipe.
+  drush recipe "/var/www/html/recipes/${recipe}" \
+    --input=pantheon_nextjs_demo.base_url="${FRONTEND_URL}"
+done
+
+echo "Rebuilding caches..."
+drush cache:rebuild
+
+# Provision the OAuth pieces for draft preview that can't ship as config (keys, consumer
+# secret). Idempotent, so it's safe on every recipe run.
+configure_preview="/mnt/ddev_config/commands/web/configure-preview"
+if [ -x "${configure_preview}" ]; then
+  bash "${configure_preview}"
+fi
