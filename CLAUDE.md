@@ -1,139 +1,139 @@
 # CLAUDE.md — Drupal 11 backend
 
-Headless Drupal 11 content backend for the Next.js frontend in `../web`. See the
-[root CLAUDE.md](../CLAUDE.md) for the cross-project picture and Pantheon/Terminus ops.
+Headless **Drupal 11** content backend for a decoupled **Next.js 16** frontend. Content is
+served over JSON:API; navigation over the Decoupled Menus linkset endpoint; draft preview
+and revalidation via the Next.js for Drupal (`next`) module.
+
+This repository is a **Pantheon Custom Upstream** (the `drupal-composer-managed` pattern).
+Its counterpart frontend repo is
+[`willjackson/d11-nextjs-starter-fe`](https://github.com/willjackson/d11-nextjs-starter-fe).
+For end-to-end install/use/deploy instructions, see **[GUIDEBOOK.md](GUIDEBOOK.md)**.
 
 ## Stack
 
-- **Drupal 11** (`drupal/core-recommended ^11`), PHP **8.3** local / **8.4** on Pantheon.
-- **Drush 13** local (`drush_version: 10` declared in `pantheon.yml`).
-- **Docroot**: `web/` (`web_docroot: true`). Composer root is this directory.
-- **Hosting**: Pantheon (`pantheon-systems/drupal-integrations`), MariaDB 10.6/10.11.
-- Git origin: `git@github.com:willjackson/pantheon-nextjs-demo-drupal.git`.
+- **Drupal 11** (`drupal/core-recommended ^11`), **PHP 8.3** (set in `pantheon.upstream.yml`).
+- **Drush 13** locally (`drush_version: 10` declared for Pantheon in `pantheon.upstream.yml`).
+- **Docroot**: `web/` (`web_docroot: true`); the repo root is the Composer root.
+- **Hosting**: Pantheon Custom Upstream + Integrated Composer, MariaDB 10.6.
+- Git origin: `git@github.com:willjackson/d11-nextjs-starter-be.git`.
 
 ## Layout
 
+The repository root **is** the Drupal Composer project:
+
 ```
-drupal/
 ├── composer.json             # per-site root (thin) — requires the upstream-configuration package
 ├── upstream-configuration/   # custom-upstream shared deps (modules + recipe packages) + scripts
-├── pantheon.upstream.yml     # upstream platform defaults (php 8.3, mariadb 10.6, build_step)
-├── pantheon.yml              # per-site platform override (php 8.4, protected paths)
+├── pantheon.upstream.yml      # platform config (php 8.3, mariadb 10.6, drush 10, build_step, protected paths)
 ├── config/sync/              # exported site configuration
 ├── recipes/                  # Composer-installed recipe packages (gitignored; see below)
-├── .ddev/                    # backend DDEV project (d11-nextjs-be) — config + init/recipe commands
+├── .ddev/                    # DDEV project (d11-nextjs-be) — config + init/recipe commands
 ├── drush/drush.yml           # pins drush --uri to the backend hostname (d11-nextjs-be.ddev.site)
-├── private/                  # private files (gitignored on Pantheon)
+├── private/                  # private files (gitignored)
 └── web/                      # Drupal docroot
-    ├── modules/contrib/      # Composer-managed contrib modules
-    └── ...
+    └── modules/contrib/, profiles/custom/, …
 ```
 
 ## Custom upstream (Pantheon `drupal-composer-managed`)
 
-This backend is a **Pantheon custom upstream**. Shared dependencies live in
-`upstream-configuration/composer.json` (the `pantheon-upstreams/upstream-configuration`
-package, wired into the root `composer.json` as a `path` repository); the root
-`composer.json` is the per-site file that stays thin. Add upstream-level dependencies to
-`upstream-configuration/composer.json` (e.g. `composer upstream:require <package>`), not to
-the root.
+Shared dependencies live in `upstream-configuration/composer.json` (the
+`pantheon-upstreams/upstream-configuration` package, wired into the root `composer.json` as a
+`path` repository); the root `composer.json` is the per-site file that stays thin. Add
+upstream-level dependencies to `upstream-configuration/composer.json`
+(`composer upstream:require <package>`), not to the root.
 
-- `pantheon.upstream.yml` — upstream platform defaults (PHP 8.3, MariaDB 10.6, drush 10,
-  `build_step`, protected paths). `pantheon.yml` is the per-site override (PHP 8.4 here).
-- `upstream-configuration/` — `composer.json` (the shared deps: the contrib modules
-  `next`/`decoupled_router`/`consumers`/`simple_oauth`/`pathauto` + the two recipe
-  packages), `scripts/ComposerScripts.php` (pre/post-update hooks), `README.md`, `.gitignore`.
+- `pantheon.upstream.yml` — platform config: PHP 8.3, MariaDB 10.6, drush 10, `build_step`,
+  protected web paths (`/private/`, the files private dir, `files/config/`).
+- `upstream-configuration/` — `composer.json` (shared deps: contrib modules
+  `next`/`decoupled_router`/`consumers`/`simple_oauth`/`pathauto` + the two recipe packages),
+  `scripts/ComposerScripts.php` (pre/post-update hooks), `README.md`, `.gitignore`.
 
 ## Recipes
 
 The Next.js configuration and demo content ship as two recipe packages under the
-**`pantheon-systems-ps`** org, required by the upstream:
+**`pantheon-systems-ps`** org (published on Packagist, tagged `1.0.0`), required by the
+upstream:
 
 | Recipe | Type | Role |
 | --- | --- | --- |
-| `pantheon-systems-ps/pantheon_nextjs_demo` | Site | Decoupled config: `next`, `next_jsonapi`, `decoupled_router`, `consumers`, `simple_oauth`, `pathauto`, the `nextjs` menu, content types (Page/Article/Event). |
+| `pantheon-systems-ps/pantheon_nextjs_demo` | Site | Decoupled config: `next`, `next_jsonapi`, `decoupled_router`, `consumers`, `simple_oauth`, `pathauto`, the `nextjs` menu, content types (Page/Article/Event). Takes a `base_url` input. |
 | `pantheon-systems-ps/pantheon_nextjs_demo_content` | Content | Demo content: Articles, Events, Pages, Tags taxonomy. Depends on and auto-applies the Site recipe. |
 
-`pantheon_nextjs_demo` takes a `base_url` input (the Next.js base URL) and writes it into
-`next.next_site.nextjs` (`base_url`, `preview_url`, `revalidate_url`). It also enables the
-`linkset_endpoint` feature flag and attaches the `nextjs` menu to the Page type.
+`pantheon_nextjs_demo` writes its `base_url` input into `next.next_site.nextjs` (`base_url`,
+`preview_url`, `revalidate_url`), enables the `linkset_endpoint` feature flag, and attaches
+the `nextjs` menu to the Page type.
 
 > **`recipes/` is gitignored.** Recipes are Composer packages (`type: drupal-recipe`)
-> installed into `recipes/{name}` — not committed to this repo. Each recipe's canonical home
-> is its own package/repo under `pantheon-systems-ps`; what lives in `recipes/` locally is the
-> working/installed copy.
+> installed into `recipes/{name}` — not committed here. Each recipe's canonical home is its
+> own package/repo under `pantheon-systems-ps`; what's in `recipes/` locally is the installed
+> copy.
 
 Apply them with `ddev apply-recipes` (see `.ddev/commands/web/apply-recipes`), which applies
-`pantheon_nextjs_demo` (passing `base_url` for the front end) and `pantheon_nextjs_demo_content`,
-then runs `configure-preview` for the OAuth pieces. Local testing without publishing (this
-`drupal/` dir is the DDEV mount, so recipes resolve under `/var/www/html/recipes`):
+`pantheon_nextjs_demo` (passing `base_url` for the front end) and
+`pantheon_nextjs_demo_content`, then runs `configure-preview` for the OAuth pieces. The repo
+root is the DDEV mount, so recipes resolve under `/var/www/html/recipes`:
 
 ```bash
 ddev drush recipe /var/www/html/recipes/pantheon_nextjs_demo
-ddev drush recipe /var/www/html/recipes/pantheon_nextjs_demo_content
 ddev drush cache:rebuild
 ```
 
-> The recipe packages are published on Packagist (`pantheon-systems-ps/pantheon_nextjs_demo`
-> and `…_content`, tagged `1.0.0`), so the root `composer.json` needs no `vcs` repositories —
-> they resolve from Packagist like any other dependency.
-
 ## Install profile (`web/profiles/custom/pantheon_nextjs_demo`)
 
-A Drupal-CMS-style, recipe-driven install profile for the **Pantheon custom-upstream install
-experience**: a site created from this upstream installs directly with it (no profile
-picker). Its install tasks (`pantheon_nextjs_demo.profile`):
+A Drupal-CMS-style, recipe-driven install profile for the **Pantheon browser install** of a
+site created from the custom upstream (installs directly with it, no profile picker). Its
+install tasks (`pantheon_nextjs_demo.profile`):
 
 1. **Configure front end** — a branded installer step (`src/Form/FrontendUrlForm.php`,
-   `themes/pantheon_nextjs_installer`) that collects the Next.js base URL and shows a
+   `themes/pantheon_nextjs_installer`) collecting the Next.js base URL and showing a
    copy-paste `.env` block including the one-time OAuth client secret.
-2. **Install the base site** — applies curated core recipes (admin/front theme, text
-   formats + CKEditor, `tags_taxonomy`) instead of `standard`, avoiding
-   navigation/layout_builder/big_pipe that a JSON:API backend doesn't need.
+2. **Install the base site** — installs the full standard Drupal baseline (Views, Field UI,
+   dblog, block, contextual, page cache + BigPipe, navigation, CKEditor 5, …) minus
+   `layout_builder`, plus core recipes for themes, text formats, and the `tags` vocabulary.
 3. **Install content model and front end** — applies `pantheon_nextjs_demo` (seeding the
-   collected URL as `base_url`) and `pantheon_nextjs_demo_content`.
+   collected URL) and `pantheon_nextjs_demo_content`.
 4. **Configure draft preview** — provisions OAuth (keys in `private://keys`, the default
-   consumer) — the install-time, Pantheon-persistent equivalent of `ddev configure-preview`.
+   consumer).
 
-> **Local DDEV still installs the `standard` profile** + `ddev apply-recipes` (form-based
-> install tasks don't run cleanly under `drush site:install`). The profile is the path for
-> installing a **site from the Pantheon custom upstream** in the browser.
+> **Local DDEV installs the `standard` profile** + `ddev apply-recipes` instead — browser-form
+> install tasks don't run cleanly under `drush site:install`. The profile is the path for
+> installing a site from the custom upstream in the browser.
 
 ## Common commands
 
-Run via DDEV from this `drupal/` dir (`ddev drush …`), or directly here once shelled in.
+Run via DDEV from the repo root (`ddev drush …`), or directly once shelled in.
 
 ```bash
-drush cache:rebuild           # cr — first thing to try on 404s / stale config
-drush config:export           # cex — write config to config/sync
-drush config:import           # cim
-drush recipe ../recipes/<name>
-drush user:login              # uli — one-time admin login link
-drush updatedb                # updb
+drush cache:rebuild                          # cr — first thing to try on 404s / stale config
+drush config:export                          # cex — write config to config/sync
+drush config:import                          # cim
+drush recipe /var/www/html/recipes/<name>    # apply a recipe (absolute path in the container)
+drush user:login                             # uli — one-time admin login link
+drush updatedb                               # updb
 ```
 
 Remote (Pantheon) drush via Terminus: `terminus drush <site>.<env> -- cr`.
 
 ## Headless / API conventions
 
-- **JSON:API** is the contract with Next.js. Anonymous read access is granted for the
+- **JSON:API** is the contract with the frontend. Anonymous read access is granted for the
   decoupled content types; don't tighten permissions without checking the frontend.
-- **Simple OAuth** (client credentials) authenticates privileged calls (draft preview).
-  The default consumer is `default_consumer`; the frontend's `DRUPAL_CLIENT_ID` /
-  `DRUPAL_CLIENT_SECRET` must match a Drupal consumer.
-- **Path aliases** (`pathauto`) determine Next.js routes — design aliases with the
-  frontend URL structure in mind.
-- The **`nextjs` menu** drives frontend navigation (`/api/menu` on the Next.js side).
+- **Simple OAuth** (client credentials) authenticates privileged calls (draft preview). The
+  default consumer is `default_consumer`; the frontend's `DRUPAL_CLIENT_ID` /
+  `DRUPAL_CLIENT_SECRET` must match it.
+- **Path aliases** (`pathauto`) determine Next.js routes — design aliases with the frontend
+  URL structure in mind.
+- The **`nextjs` menu** drives frontend navigation (served via the linkset endpoint).
 - Preview/revalidation URLs on the `nextjs` next_site must point at the live frontend
   (`/api/draft`, `/api/revalidate`).
 
 ## Gotchas
 
-- This backend is its **own DDEV project** (`d11-nextjs-be`, served at
-  `https://d11-nextjs-be.ddev.site`); the Next.js frontend is a separate project (`d11-nextjs-fe`)
-  in `../web`. `drush/drush.yml` pins `--uri` to the backend's primary URL so drush emits
-  correct absolute URLs (login links, etc.).
-- A core patch is applied via `cweagans/composer-patches` (see `composer.json` →
-  `extra.patches`); keep it when running `composer update`.
-- `pantheon.yml` protects `/private/`, file private dir, and `files/config/`.
-- There's a committed DB dump (`d11-headless-nextjs-demo.sql.gz`) used for local seeding.
+- This backend is served as its own site/URL; the Next.js frontend is a **separate
+  repository** ([`d11-nextjs-starter-fe`](https://github.com/willjackson/d11-nextjs-starter-fe)),
+  not part of this repo. Local dev runs each as its own DDEV project.
+- `drush/drush.yml` pins `--uri` to the backend's primary URL so drush emits correct absolute
+  URLs (login links, etc.); on Pantheon the platform sets the URI.
+- A core patch and a `subrequests` PHP-8.4 compatibility patch are applied via
+  `cweagans/composer-patches` (see `composer.json` → `extra.patches`); keep them when running
+  `composer update`.
