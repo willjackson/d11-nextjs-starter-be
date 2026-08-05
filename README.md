@@ -4,13 +4,17 @@ A Drupal 11 site that serves content to a single Next.js front end over JSON:API
 flows from Drupal to the front end; preview and on-demand revalidation are handled by the
 Next.js for Drupal (`next`) module. This repo is a **Pantheon custom upstream** — sites
 created from it get the decoupled content model, the Next.js wiring, and (optionally) the
-demo content out of the box. The matching front end lives in [`../web`](../web).
+demo content out of the box. The matching front end is a separate repository,
+[`willjackson/d11-nextjs-starter-fe`](https://github.com/willjackson/d11-nextjs-starter-fe).
+
+**Full setup, usage, and deploy:** see **[GUIDEBOOK.md](GUIDEBOOK.md)** (ships identically in
+the backend and front-end repos).
 
 ## Stack
 
 - Drupal 11 on PHP 8.3, docroot `web/`, hosted on Pantheon (Integrated Composer).
 - DDEV project `d11-nextjs-be`, served at `https://d11-nextjs-be.ddev.site`.
-- Front end: a separate Next.js project (`d11-nextjs-fe`) in `../web`.
+- Front end: a separate Next.js repo (`d11-nextjs-starter-fe`, DDEV project `d11-nextjs-fe`).
 
 ## Requirements
 
@@ -28,7 +32,7 @@ ddev show-links    # admin login link + the registered front end URL
 ```
 
 `ddev init` runs `ddev init-site` (Composer install + `drush site:install standard`) followed
-by `ddev apply-recipes`. Then start the front end from [`../web`](../web) (`ddev init` there).
+by `ddev apply-recipes`. Then start the front end from its own repo (`ddev init` there).
 
 ## Recipes
 
@@ -79,7 +83,8 @@ and recipes), and the install profile walks the operator through connecting the 
   apply-recipes` runs `configure-preview` to generate the signing keys and configure
   `default_consumer` (confidential, secret `nextjs-drupal`).
 - The front end's environment variables (base URL, image domain, client id/secret, revalidate
-  and preview secrets) are documented in [`../web/.env.example`](../web/.env.example).
+  and preview secrets) are documented in the front-end repo's `.env.example` and in
+  [GUIDEBOOK.md](GUIDEBOOK.md).
 
 ## Common commands
 
@@ -99,4 +104,4 @@ Remote (Pantheon) drush via Terminus: `terminus drush <site>.<env> -- cache:rebu
 - `recipes/` is Composer-populated and gitignored — recipes are packages, not committed here.
 - OAuth keys and secrets are never committed (`keys/` is gitignored; on Pantheon the profile
   writes them to the private filesystem). Use Pantheon Secrets for the front end's client
-  secret in production.
+  secret in production (see [GUIDEBOOK.md](GUIDEBOOK.md) for the Terminus commands).

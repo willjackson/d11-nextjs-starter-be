@@ -11,7 +11,7 @@
 #   2. The default consumer configured as confidential, with a known secret and the
 #      client_credentials grant.
 # The front end authenticates with client_id=default_consumer / client_secret=nextjs-drupal
-# (see ../web/.env.example). If the recipe provides a `nextjs_preview` role/scope for reading
+# (see the front-end repo's .env.example). If the recipe provides a `nextjs_preview` role/scope for reading
 # unpublished content, they are wired up too; otherwise those steps are skipped.
 #
 # This command is idempotent — safe to re-run. It is invoked automatically by `ddev apply-recipes`.

@@ -86,14 +86,10 @@ machine-wide DDEV router **by hostname**, so their locations on disk are irrelev
 > `drupal-composer-managed` pattern), so docroot paths below — e.g. `profiles/custom/…` —
 > live under `web/`.
 
-```
-                JSON:API  (/jsonapi/node/*)
-                Linkset   (/system/menu/nextjs/linkset)
-   ┌─────────────┐  OAuth (draft preview) ┌──────────────┐
-   │  Drupal 11  │ ─────────────────────▶ │  Next.js 16  │ ──▶ visitors
-   │  (backend)  │ ◀───────────────────── │  (frontend)  │
-   └─────────────┘  revalidate (/api/…)   └──────────────┘
-```
+The frontend reads content from Drupal over **JSON:API** (`/jsonapi/node/*`) and builds
+navigation from the **linkset** endpoint (`/system/menu/nextjs/linkset`), authenticating
+with **OAuth** for draft preview; when content changes, Drupal calls the frontend's
+**`/api/revalidate`**. Next.js renders the pages visitors see.
 
 - Drupal exposes **Page, Article, Event** content types (+ a **Tags** vocabulary) over
   JSON:API and registers the frontend as a **`next_site`** entity (base/preview/revalidate URLs).
@@ -139,6 +135,63 @@ The content model and demo content ship as two Composer packages under the
 ddev apply-recipes                              # both recipes (default) + configure preview
 ddev apply-recipes pantheon_nextjs_demo         # just the Site recipe (no demo content)
 ```
+
+`ddev apply-recipes` is a thin wrapper around the standard `drush recipe` workflow that adds
+the two things a local environment needs on top of applying the recipes:
+
+1. **Injects the local front-end URL.** It passes the DDEV front end's host
+   (`https://d11-nextjs-fe.ddev.site`) into the Site recipe's `base_url` input, so the `nextjs`
+   `next_site`'s `base_url` / `preview_url` / `revalidate_url` are wired to your local front end
+   without prompting.
+2. **Provisions OAuth draft preview** (by calling `ddev configure-preview`) — the pieces that
+   carry secrets and so can't ship as recipe config: it generates the Simple OAuth RSA key pair,
+   points `simple_oauth.settings` at them, and configures `default_consumer` as confidential
+   with a known secret (`nextjs-drupal`) and the `client_credentials` grant.
+
+#### Applying the recipes manually
+
+These are ordinary Drupal recipes — you can skip the wrapper and apply them the standard way
+with `drush recipe`, using the **relative path from the project (Composer) root** exactly as
+each recipe's own README shows. (The `ddev apply-recipes` wrapper uses the absolute container
+path `/var/www/html/recipes/<name>` instead, because `ddev drush` runs from the docroot
+(`web/`) — from there, `cd /var/www/html` first, or use the absolute path.) Two things the
+wrapper does for you then become manual:
+
+**1. Pass the front-end URL.** `base_url` is an input of the **Site recipe
+(`pantheon_nextjs_demo`) only** — the demo-content recipe defines no input of its own. It
+prompts (default `http://localhost:3000`) when not provided, so pass it non-interactively,
+namespaced to the recipe that defines it. Because the content recipe depends on and re-applies
+the Site recipe, pass the same namespaced input there too, or `base_url` resets to its default:
+
+```bash
+# Site recipe — defines the base_url input:
+drush recipe recipes/pantheon_nextjs_demo \
+  --input=pantheon_nextjs_demo.base_url=https://your-frontend.example
+
+# Demo content — no input of its own; the namespaced input flows to the Site recipe it re-applies:
+drush recipe recipes/pantheon_nextjs_demo_content \
+  --input=pantheon_nextjs_demo.base_url=https://your-frontend.example
+
+drush cache:rebuild
+```
+
+The value is written to the `nextjs` `next_site`'s `base_url` / `preview_url` / `revalidate_url`.
+
+**2. Set up the OAuth keys and consumer.** Draft preview and authenticated JSON:API reads use
+Simple OAuth (`client_credentials`). Generate the signing keys, point Simple OAuth at them, and
+make the consumer confidential with a known secret:
+
+```bash
+drush simple-oauth:generate-keys /var/www/html/keys
+drush config:set simple_oauth.settings public_key  /var/www/html/keys/public.key
+drush config:set simple_oauth.settings private_key /var/www/html/keys/private.key
+# then make default_consumer confidential with a known client secret + the client_credentials
+# grant (and attach the nextjs_preview role/scope if the recipe defined it). The front end
+# authenticates with client_id=default_consumer / client_secret=<that secret>.
+```
+
+Keep the client secret and the `keys/` directory out of version control (both are gitignored);
+use Pantheon Secrets for the secret in production (see §6).
 
 ### Install profile
 

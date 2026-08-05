@@ -20,4 +20,4 @@ echo "Registered Next.js front ends (next_site entities):"
 drush ev '$sites = \Drupal::entityTypeManager()->getStorage("next_site")->loadMultiple(); if (!$sites) { print "  (none yet — run: ddev apply-recipes)\n"; } foreach ($sites as $id => $site) { print "  - " . $id . ": " . $site->get("base_url") . "\n"; }' 2>/dev/null || echo "  (next module not installed yet)"
 
 echo ""
-echo "Next.js front end runs as its own DDEV project in ../web (ddev: d11-nextjs-fe)."
+echo "Next.js front end runs as its own DDEV project (ddev: d11-nextjs-fe) from its own repo."
